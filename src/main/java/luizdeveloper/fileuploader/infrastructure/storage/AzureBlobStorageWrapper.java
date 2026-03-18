@@ -53,4 +53,15 @@ public class AzureBlobStorageWrapper {
             throw new StorageIntegrationException("Failed to retrieve the file in the cloud storage", ex);
         }
     }
+
+    public void delete(String blobName) {
+        try {
+            BlobContainerClient blobContainerClient = blobServiceClient.getBlobContainerClient(containerName);
+            BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
+            blobClient.deleteIfExists();
+
+        } catch (BlobStorageException e) {
+            throw new StorageIntegrationException("Failed to delete the orphaned file in the cloud storage");
+        }
+    }
 }

@@ -1,6 +1,5 @@
 package luizdeveloper.fileuploader.service;
 
-import io.netty.util.internal.StringUtil;
 import jakarta.transaction.Transactional;
 import luizdeveloper.fileuploader.dto.DocumentUploadResponse;
 import luizdeveloper.fileuploader.enums.DocumentStatus;
@@ -9,7 +8,6 @@ import luizdeveloper.fileuploader.infrastructure.storage.AzureBlobStorageWrapper
 import luizdeveloper.fileuploader.mapper.DocumentMapper;
 import luizdeveloper.fileuploader.model.Document;
 import luizdeveloper.fileuploader.repository.DocumentRepository;
-import org.apache.tomcat.util.http.fileupload.InvalidFileNameException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -61,8 +59,15 @@ public class DocumentService {
             document.setSize(file.getSize());
             document.setUserId("1");
 
-            Document savedDocument = documentRepository.save(document);
-            return documentMapper.toDto(savedDocument);
+            try {
+                Document savedDocument = documentRepository.save(document);
+                return documentMapper.toDto(savedDocument);
+            } catch (Exception dbException) {
+                log.error("Database save failed. Executing compensating transaction to delete orphaned blob: {}", blobName, dbException);
+                azureBlobStorageWrapper.delete(blobName);
+                throw new RuntimeException("Error saving document metadata. Upload rolled back.", dbException);
+            }
+
         } catch (IOException e) {
             throw new RuntimeException("Error while reading file bytes", e);
         }
