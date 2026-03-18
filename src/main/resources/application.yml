@@ -1,0 +1,8 @@
+
+
+
+
+azure:
+  storage:
+    connection-string: ${STORAGE_CONNECTION_STRING}
+    container-name: ${STORAGE_CONTAINER_NAME}
