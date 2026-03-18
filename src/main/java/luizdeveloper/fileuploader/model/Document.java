@@ -3,17 +3,20 @@ package luizdeveloper.fileuploader.model;
 import jakarta.persistence.*;
 import luizdeveloper.fileuploader.enums.DocumentStatus;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "documents")
-public class Document {
+public class Document implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Transient
+    public boolean isNew = true;
 
     @Column(nullable = false, length = 255)
     private String fileName;
@@ -44,6 +47,17 @@ public class Document {
 
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PrePersist
+    @PostLoad
+    void markNotNew() {
+        this.isNew = false;
     }
 
     public void setId(UUID id) {

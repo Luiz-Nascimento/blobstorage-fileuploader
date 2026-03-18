@@ -10,6 +10,7 @@ import luizdeveloper.fileuploader.infrastructure.exception.StorageIntegrationExc
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 
 @Component
@@ -33,7 +34,7 @@ public class AzureBlobStorageWrapper {
 
             BlockBlobClient blockBlobClient = containerClient.getBlobClient(blobName).getBlockBlobClient();
 
-            blockBlobClient.upload(content, size);
+            blockBlobClient.upload(new BufferedInputStream(content), size);
 
             return blockBlobClient.getBlobUrl();
         } catch (BlobStorageException ex) {
